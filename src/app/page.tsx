@@ -7,6 +7,7 @@ import CsvUploader from '@/components/CsvUploader';
 import Charts from '@/components/Charts';
 import FilterControls, { FilterState } from '@/components/FilterControls';
 import TransactionTable from '@/components/TransactionTable';
+import { startOfMonth, endOfMonth, format } from 'date-fns';
 
 export default function HomePage() {
   const [transactions, setTransactions] = useState<Tx[]>(sampleTransactions);
@@ -14,7 +15,7 @@ export default function HomePage() {
   const { minDate, maxDate, uniqueAccounts } = useMemo(() => {
     const dates = transactions.map(tx => tx.dateOp).sort();
     const accounts = Array.from(new Set(transactions.map(tx => tx.accountLabel)));
-    
+
     return {
       minDate: dates[0] || '',
       maxDate: dates[dates.length - 1] || '',
@@ -28,14 +29,24 @@ export default function HomePage() {
     selectedAccounts: uniqueAccounts,
     searchText: '',
     selectedCategoryParent: null,
+    periodPreset: 'thisMonth',
+    categoryMode: 'all',
+    selectedCategoryParents: [],
+    showFlaggedOnly: false,
   });
 
   // Update filters when transactions change
   useMemo(() => {
+    // If using the default 'thisMonth' preset, set to current month clamped to data
+    const now = new Date();
+    const start = startOfMonth(now);
+    const end = endOfMonth(now);
+    const clampedFrom = minDate ? (new Date(minDate) > start ? new Date(minDate) : start) : start;
+    const clampedTo = maxDate ? (new Date(maxDate) < end ? new Date(maxDate) : end) : end;
     setFilters(prev => ({
       ...prev,
-      dateFrom: minDate,
-      dateTo: maxDate,
+      dateFrom: prev.periodPreset === 'thisMonth' ? format(clampedFrom, 'yyyy-MM-dd') : minDate,
+      dateTo: prev.periodPreset === 'thisMonth' ? format(clampedTo, 'yyyy-MM-dd') : maxDate,
       selectedAccounts: uniqueAccounts,
     }));
   }, [minDate, maxDate, uniqueAccounts]);
@@ -92,9 +103,9 @@ export default function HomePage() {
             )}
 
             {/* Charts */}
-            <Charts 
-              transactions={transactions} 
-              onCategoryClick={handleCategoryClick} 
+            <Charts
+              transactions={transactions}
+              onCategoryClick={handleCategoryClick}
             />
 
             {/* Filters */}
@@ -105,7 +116,7 @@ export default function HomePage() {
             />
 
             {/* Transaction Table */}
-            <TransactionTable 
+            <TransactionTable
               transactions={transactions}
               filters={filters}
             />

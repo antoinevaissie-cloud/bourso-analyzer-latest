@@ -95,7 +95,7 @@ export default function Charts({ transactions, onCategoryClick }: ChartsProps) {
       if (elements.length > 0) {
         const elementIndex = elements[0].index;
         const isExpenseChart = elements[0].datasetIndex === 0;
-        const category = isExpenseChart 
+        const category = isExpenseChart
           ? expenseData.labels[elementIndex]
           : incomeData.labels[elementIndex];
         onCategoryClick(category);
@@ -105,6 +105,27 @@ export default function Charts({ transactions, onCategoryClick }: ChartsProps) {
 
   return (
     <div className="space-y-8">
+      {/* Top Categories Callouts */}
+      {(expenseData.labels.length > 0 || incomeData.labels.length > 0) && (
+        <div className="flex flex-wrap gap-3">
+          {expenseData.labels.length > 0 && (
+            <button
+              className="px-3 py-1 rounded-full text-sm bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+              onClick={() => onCategoryClick(expenseData.labels[0])}
+            >
+              Top Outflow: {expenseData.labels[0]} (€{(expenseData.datasets[0] as any).data[0].toLocaleString('fr-FR')})
+            </button>
+          )}
+          {incomeData.labels.length > 0 && (
+            <button
+              className="px-3 py-1 rounded-full text-sm bg-green-50 text-green-700 border border-green-200 hover:bg-green-100"
+              onClick={() => onCategoryClick(incomeData.labels[0])}
+            >
+              Top Inflow: {incomeData.labels[0]} (€{(incomeData.datasets[0] as any).data[0].toLocaleString('fr-FR')})
+            </button>
+          )}
+        </div>
+      )}
       {expenseData.labels.length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-4 text-red-600">
